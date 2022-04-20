@@ -8,7 +8,7 @@
         Text,
         TitleBar,
     } from "svelte-doric"
-    import { Flex } from "svelte-doric/layout"
+    import { Flex, Grid } from "svelte-doric/layout"
     import { Dialog, Confirm, Prompt } from "svelte-doric/dialog"
 
     import now from "@/state/now.js"
@@ -62,7 +62,7 @@
 
 <style>
     time-text {
-        font-size: 24px;
+        font-size: 20px;
     }
     tz-selected {
         text-align: center;
@@ -72,23 +72,8 @@
 <Dialog bind:this={confirmation} component={Confirm} persistent />
 <Dialog bind:this={nameChange} component={Prompt} persistent />
 <Paper card>
-    <TitleBar compact>
+    <TitleBar compact slot="title">
         {name}
-
-        <Adornment slot="menu">
-            {#if zone !== null}
-            <Button on:tap={rename}>
-                <Icon name="pencil" />
-            </Button>
-            {/if}
-        </Adornment>
-        <Adornment slot="action">
-            {#if zone !== null}
-            <Button color="danger" on:tap={remove}>
-                <Icon name="remove" />
-            </Button>
-            {/if}
-        </Adornment>
     </TitleBar>
 
     <Flex direction="column">
@@ -96,7 +81,7 @@
             <Select options={zoneList} bind:value={zone} label="Timezone" let:selected>
                 <tz-selected slot="selected">
                     Timezone<br />
-                    {selected?.name ?? ""}
+                    {selected?.short ?? selected?.value ?? ""}
                 </tz-selected>
             </Select>
         {/if}
@@ -106,4 +91,15 @@
             </time-text>
         </Text>
     </Flex>
+    <Grid cols={2} padding="0px" gap="2px" slot="action">
+        {#if zone !== null}
+            <Button on:tap={rename}>
+                <Icon name="pencil" />
+            </Button>
+
+            <Button color="danger" on:tap={remove}>
+                <Icon name="remove" />
+            </Button>
+        {/if}
+    </Grid>
 </Paper>

@@ -75,7 +75,8 @@ const zoneList = [
         "value": "EST5EDT",
         "offset": "GMT-5:00",
         "name": "Eastern Standard Time",
-        "label": "Eastern Standard Time (GMT-5:00)"
+        "label": "Eastern Standard Time (GMT-5:00)",
+        "short": "EST",
     },
     {
         "value": "ECT",
