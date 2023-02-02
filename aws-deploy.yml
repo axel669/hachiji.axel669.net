@@ -1,0 +1,10 @@
+region: us-west-1
+
+buckets:
+  main:
+    name: hachiji.axel669.net
+    dir: build
+
+deployment:
+  resources:
+    "s3:main"

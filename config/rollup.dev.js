@@ -2,32 +2,31 @@ import svelte from "rollup-plugin-svelte"
 import commonjs from "@rollup/plugin-commonjs"
 import resolve from "@rollup/plugin-node-resolve"
 import del from "rollup-plugin-delete"
-import html from "@rollup/plugin-html"
-// import replace from "@rollup/plugin-replace"
-
-import copy from "./plugins/copy.js"
-import simpleLocation from "./plugins/simple-location"
-
-import appInfo from "./app-info.js"
-import template from "./html-template.js"
+import html from "@axel669/rollup-html-input"
+import $path from "@axel669/rollup-dollar-path"
+// import copyStatic from "@axel669/rollup-copy-static"
 
 export default {
-    input: "./src/main.js",
+    input: "src/index.html",
     output: {
-        file: `./build/app-d${Date.now()}.js`,
+        file: `build/app-d${Date.now()}.js`,
         format: "iife",
     },
     plugins: [
+        html(),
+        $path({
+            root: "src",
+            paths: {
+                $bee: "src/comp/bee-theme.svelte",
+                $now: "src/state/now.js",
+                $comp: "src/comp",
+                $zone: "src/data/zone.js",
+                $app: "src/state/app.js"
+            }
+        }),
         del({ targets: "./build/*" }),
         svelte(),
-        simpleLocation,
         resolve(),
         commonjs(),
-        html({
-            filename: "./build/index.html",
-            title: appInfo.name,
-            template,
-        }),
-        copy("static", "build")
     ]
 }

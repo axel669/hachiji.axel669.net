@@ -3,7 +3,9 @@
         Select,
         Text,
     } from "svelte-doric"
+
     export let currentTheme
+
     const iconMap = {
         light: "sun",
         dark: "moon",
@@ -19,7 +21,12 @@
     $: icon = iconMap[currentTheme]
 </script>
 
-<Select options={themes} bind:value={currentTheme} label="Theme" {icon} variant="normal">
+<Select
+options={themes}
+bind:value={currentTheme}
+label="Theme" {icon}
+variant="normal"
+adorn>
     <Text slot="selected">
     </Text>
 </Select>

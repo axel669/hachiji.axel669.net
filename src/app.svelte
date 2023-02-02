@@ -3,23 +3,34 @@
         AppStyle,
         Baseline as baseline,
 
+        AppBar,
         Adornment,
         Button,
+        Footer,
         Icon,
         Paper,
-        TitleBar,
-    } from "svelte-doric"
-    import { LightTheme, DarkTheme, TronTheme } from "svelte-doric/theme"
-    import { Flex, Grid } from "svelte-doric/layout"
-    
-    import Clock from "@/comp/clock.svelte"
-    import ThemeSelector from "./theme-selector.svelte"
-    import BeeTheme from "@/comp/bee-theme.svelte"
-    import SecretMenu from "@/comp/secret-menu.svelte"
+        Screen,
 
-    import { clocks } from "@/state/app.js"
+        Flex, Grid,
+
+        LightTheme, DarkTheme, TronTheme,
+
+        css,
+    } from "svelte-doric"
+    import BeeTheme from "$bee"
+
+    // import SecretMenu from "@/comp/secret-menu.svelte"
+    import ThemeSelector from "$/theme-selector"
+
+    import Clock from "$comp/clock"
+    import Convert from "$comp/convert"
+    import EditClock from "$/comp/clock/edit"
+
+    import zone from "$zone"
+    import { clocks } from "$app"
 
     let currentTheme = localStorage.theme ?? "bee"
+    let scr = null
 
     const themeMap = {
         light: LightTheme,
@@ -28,52 +39,72 @@
         bee: BeeTheme,
     }
 
-    function addClock() {
-        clocks.emit(
-            "add",
+    const add = () => {
+        clocks.add(
             { name: "New Clock", zone: "GMT", id: Date.now() }
         )
+    }
+    const edit = (clock) => {
+        if (clock === null) {
+            scr.openStack(Convert)
+            return
+        }
+        scr.openStack(EditClock, { clock })
+    }
+
+    const local = {
+        zone: zone.local.value,
+        id: null,
+        name: "Local Time",
     }
 
     $: theme = themeMap[currentTheme]
     $: localStorage.theme = currentTheme
+
+    const colorCorrection = css`
+        body {
+            color-scheme: dark;
+        }
+    `
 </script>
 
-<style>
-    clock-grid {
-        display: grid;
-        gap: 4px;
-        padding: 0px;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        grid-auto-rows: min-content;
-    }
-</style>
+{#if currentTheme !== "light"}
+    {@html colorCorrection}
+{/if}
 
 <AppStyle {baseline} {theme} />
 
-<Paper width="min(100%, 720px)" center>
-    <TitleBar sticky>
+<Screen bind:this={scr}>
+    <AppBar slot="title">
         TimeZone Tracker
-    
-        <Adornment slot="action">
+
+        <Adornment slot="menu">
             <ThemeSelector bind:currentTheme />
         </Adornment>
 
-        <Adornment slot="menu">
-            <SecretMenu />
+        <Adornment slot="action">
+            <Button on:tap={add} adorn>
+                <Icon name="add" />
+                <Icon name="clock" />
+            </Button>
         </Adornment>
-    </TitleBar>
 
-    <Flex direction="column" padding="2px">
-        <Button color="primary" on:tap={addClock} variant="outline">
-            <Icon name="add" />
-            New Clock
-        </Button>
-        <clock-grid>
-            <Clock name="Local" zone={null} />
-            {#each $clocks as {zone, name, id}}
-                <Clock bind:zone bind:name {id} />
+        <!-- <Adornment slot="menu">
+            <SecretMenu />
+        </Adornment> -->
+    </AppBar>
+
+    <Paper square>
+        <Grid
+        cols="repeat(auto-fit, minmax(320px, 1fr))"
+        autoRow="min-content"
+        gap="12px"
+        >
+            <Clock clock={local} {edit} isLocal />
+
+            {#each $clocks as clock (clock)}
+                <Clock {clock} {edit} />
             {/each}
-        </clock-grid>
-    </Flex>
-</Paper>
+        </Grid>
+    </Paper>
+</Screen>

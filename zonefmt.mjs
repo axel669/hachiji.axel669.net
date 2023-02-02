@@ -187,15 +187,26 @@ const zoneList = [
         "label": "Vietnam Standard Time (GMT+7:00)"
     }
 ]
-const zones = zoneList.reduce(
-    (tz, info) => ({
-        ...tz,
-        [info.value]: info.label
-    }),
-    {}
+
+const zones = zoneList.map(
+    zone => {
+        const {name, offset, value} = zone
+        const {sign = "+", hr = "0", min = "00"} = offset.match(
+            /GMT((?<sign>.)(?<hr>\d{1,2}):(?<min>\d\d))?/
+        ).groups
+        const offsetMins = (
+            (sign === "+" ? -1 : 1)
+            * (parseInt(hr) * 60)
+            + parseInt(min)
+        )
+
+        return {
+            name,
+            value,
+            offset: offsetMins,
+            gmtOffset: offset,
+        }
+    }
 )
 
-export {
-    zoneList,
-    zones,
-}
+console.log(JSON.stringify(zones, null, 4))

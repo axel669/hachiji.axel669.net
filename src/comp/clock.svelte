@@ -4,102 +4,65 @@
         Button,
         Icon,
         Paper,
-        Select,
         Text,
         TitleBar,
+
+        Flex,
+
+        dialog,
+        Confirm,
     } from "svelte-doric"
-    import { Flex, Grid } from "svelte-doric/layout"
-    import { Dialog, Confirm, Prompt } from "svelte-doric/dialog"
 
-    import now from "@/state/now.js"
-    import {h12} from "@/state/app.js"
-    import {zoneList} from "@/data/zones.js"
-    import {clocks} from "@/state/app"
+    import TimeDisplay from "$/comp/clock/time-display"
 
-    export let zone
-    export let name
-    export let id
+    import { clocks } from "$app"
 
-    let confirmation = null
-    let nameChange = null
+    export let clock
+    export let edit
+    export let isLocal = false
 
-    async function remove() {
-        const confirmed = await confirmation.show({
-            title: "Confirm",
-            message: `Remove the "${name}" clock?`,
-            okText: "Remove",
-        })
+    const {name, id, zone} = clock
 
-        if (confirmed !== true) {
+    const remove = async () => {
+        const remove = await dialog.show(
+            Confirm,
+            {
+                message: `Remove ${clock.name}?`,
+            }
+        )
+
+        if (remove !== true) {
             return
         }
 
-        clocks.emit("remove", id)
+        clocks.remove(id)
     }
-    async function rename() {
-        const newName = await nameChange.show({
-            title: "Change Clock Name",
-            message: "New Name",
-        })
-
-        if (newName === false) {
-            return
-        }
-
-        name = newName
-    }
-
-    $: fmt = new Intl.DateTimeFormat(
-        navigator.language,
-        {
-            timeZone: zone ?? undefined,
-            timeStyle: "medium",
-            hourCycle: $h12 ? "h12" : "h23",
-        }
-    )
-    $: display = fmt.format($now)
 </script>
 
-<style>
-    time-text {
-        font-size: 20px;
-    }
-    tz-selected {
-        text-align: center;
-    }
-</style>
-
-<Dialog bind:this={confirmation} component={Confirm} persistent />
-<Dialog bind:this={nameChange} component={Prompt} persistent />
 <Paper card>
-    <TitleBar compact slot="title">
+    <TitleBar center slot="title">
         {name}
+
+        <Adornment slot="action">
+            {#if isLocal === false}
+                <Button adorn color="primary" on:tap={() => edit(clock)}>
+                    <Icon name="pencil" />
+                </Button>
+            {:else}
+                <Button adorn color="secondary" on:tap={() => edit(null)}>
+                    <Icon name="calculator" />
+                </Button>
+            {/if}
+        </Adornment>
+
+        <Adornment slot="menu">
+            {#if isLocal === false}
+                <Button adorn color="danger" on:tap={remove}>
+                    <Icon name="remove" />
+                </Button>
+            {/if}
+        </Adornment>
     </TitleBar>
 
-    <Flex direction="column">
-        {#if zone !== null}
-            <Select options={zoneList} bind:value={zone} label="Timezone" let:selected>
-                <tz-selected slot="selected">
-                    Timezone<br />
-                    {selected?.short ?? selected?.value ?? ""}
-                </tz-selected>
-            </Select>
-        {/if}
-        <Text adorn>
-            <time-text>
-                {display}
-            </time-text>
-        </Text>
-    </Flex>
-    <Grid cols={2} padding="0px" gap="2px" slot="action">
-        {#if zone !== null}
-            <Button on:tap={rename}>
-                <Icon name="pencil" />
-            </Button>
-
-            <Button color="danger" on:tap={remove}>
-                <Icon name="remove" />
-            </Button>
-        {/if}
-    </Grid>
+    <TimeDisplay {zone} />
 </Paper>
